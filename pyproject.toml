@@ -12,6 +12,24 @@ license = { text = "MIT" }
 authors = [
   { name = "Mirko Ortensi", email = "mirko.ortensi@gmail.com" },
 ]
+keywords = ["json", "storage", "document", "nosql", "disk", "embedded"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Database",
+  "Topic :: Software Development :: Libraries :: Python Modules",
+]
+
+[project.urls]
+Homepage = "https://github.com/mortensi/jsondocstore"
+Repository = "https://github.com/mortensi/jsondocstore"
+"Bug Tracker" = "https://github.com/mortensi/jsondocstore/issues"
 
 [project.scripts]
 jsondocstore = "jsondocstore.cli:main"
