@@ -3,14 +3,17 @@ from __future__ import annotations
 import contextlib
 import io
 import json
+import sys
 import tempfile
 import unittest
 from contextlib import redirect_stdout
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-from core import JsonDocStore
-import cli
+sys.path.insert(0, str(Path(__file__).resolve().parent / "src"))
+
+from jsondocstore import cli
+from jsondocstore.core import JsonDocStore
 
 
 class JsonDocStoreTests(unittest.TestCase):

@@ -56,7 +56,7 @@ For example, this works:
 Start the interactive shell:
 
 ```bash
-python3 cli.py /path/to/store
+jsondocstore /path/to/store
 ```
 
 Commands:
@@ -74,7 +74,7 @@ Commands:
 Example session:
 
 ```text
-$ python3 cli.py ./data
+$ jsondocstore ./data
 jsondocstore> insert user-1 '{"username": "alice", "password": "secret1", "role": "admin"}'
 jsondocstore> insert user-2 '{"username": "bob", "password": "secret2", "role": "user"}'
 jsondocstore> insert user-3 '{"username": "carol", "password": "secret3", "role": "user"}'
@@ -104,7 +104,7 @@ jsondocstore> queryby role user
 ## Library
 
 ```python
-from core import JsonDocStore
+from jsondocstore import JsonDocStore
 
 store = JsonDocStore("./data", create=True)
 store.insert("user-1", {"username": "alice", "password": "secret1", "role": "admin"})
