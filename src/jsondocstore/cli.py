@@ -32,7 +32,7 @@ def _configure_readline() -> None:
 
 
 class JsonDocStoreShell(cmd.Cmd):
-    intro = "JsonDocStore interactive shell. Type 'help' for commands."
+    intro = "JsonDocStore shell. Type 'help' or 'help COMMAND'."
     prompt = "jsondocstore> "
 
     def __init__(self, store: JsonDocStore):
@@ -48,68 +48,19 @@ class JsonDocStoreShell(cmd.Cmd):
     def _print_json(self, value):
         print(_json_dump(value))
 
-    def _complete_from_options(self, text, options):
-        return sorted(option for option in options if option.startswith(text))
-
-    def _document_keys(self):
-        root = getattr(self.store, "root", None)
-        if root is None:
-            return []
-        return sorted(
-            path.stem
-            for path in Path(root).glob("*.json")
-            if path.name != "index.json"
-        )
-
-    def _document_fields(self):
-        fields = set()
-        root = getattr(self.store, "root", None)
-        if root is None:
-            return []
-        for path in Path(root).glob("*.json"):
-            if path.name == "index.json":
-                continue
-            try:
-                doc = json.loads(path.read_text(encoding="utf-8"))
-                fields.update(doc.keys())
-            except Exception:
-                continue
-        return sorted(field for field in fields if isinstance(field, str))
-
-    def _query_fields(self):
-        try:
-            indexes = self.store.list_indexes()
-        except Exception:
-            return []
-        return indexes or self._document_fields()
-
-    def complete_queryby(self, text, line, begidx, endidx):
-        args = shlex.split(line[:begidx])
-        if len(args) <= 1:
-            return self._complete_from_options(text, self._query_fields())
+    def completedefault(self, text, line, begidx, endidx):
         return []
 
-    def complete_createindex(self, text, line, begidx, endidx):
-        indexed = set(self.store.list_indexes())
-        fields = [field for field in self._document_fields() if field not in indexed]
-        return self._complete_from_options(text, fields)
-
-    def complete_deleteindex(self, text, line, begidx, endidx):
-        return self._complete_from_options(text, self.store.list_indexes())
-
-    def complete_delete(self, text, line, begidx, endidx):
-        return self._complete_from_options(text, self._document_keys())
-
     def do_list(self, arg):
-        """List all documents."""
+        """list: print document filenames"""
         self._print_json(self.store.list_all())
 
     def do_listindexes(self, arg):
-        """List indexed fields."""
+        """listindexes: print indexed fields"""
         self._print_json(self.store.list_indexes())
 
     def do_queryby(self, arg):
-        """queryby FIELD VALUE"""
+        """queryby FIELD VALUE: exact-match query on an indexed field"""
         try:
             field, value = shlex.split(arg)
         except ValueError:
@@ -122,7 +73,7 @@ class JsonDocStoreShell(cmd.Cmd):
             print(f"Error: {e}")
 
     def do_createindex(self, arg):
-        """createindex FIELD"""
+        """createindex FIELD: create an index on a top-level field"""
         field = arg.strip()
         if not field:
             print("Usage: createindex FIELD")
@@ -135,7 +86,7 @@ class JsonDocStoreShell(cmd.Cmd):
             print(f"Error: {e}")
 
     def do_deleteindex(self, arg):
-        """deleteindex FIELD"""
+        """deleteindex FIELD: delete an index"""
         field = arg.strip()
         if not field:
             print("Usage: deleteindex FIELD")
@@ -151,7 +102,7 @@ class JsonDocStoreShell(cmd.Cmd):
             print(f"Error: {e}")
 
     def do_insert(self, arg):
-        """insert KEY JSON_DOCUMENT"""
+        """insert KEY JSON_DOCUMENT: insert a new document"""
         if not arg.strip():
             print("Usage: insert KEY JSON_DOCUMENT")
             return
@@ -172,7 +123,7 @@ class JsonDocStoreShell(cmd.Cmd):
             print(f"Error: {e}")
 
     def do_update(self, arg):
-        """update KEY JSON_DOCUMENT"""
+        """update KEY JSON_DOCUMENT: replace an existing document"""
         if not arg.strip():
             print("Usage: update KEY JSON_DOCUMENT")
             return
@@ -193,10 +144,10 @@ class JsonDocStoreShell(cmd.Cmd):
             print(f"Error: {e}")
 
     def do_delete(self, arg):
-        """delete PK"""
+        """delete KEY: delete a document by key"""
         pk = arg.strip()
         if not pk:
-            print("Usage: delete PK")
+            print("Usage: delete KEY")
             return
 
         try:
@@ -206,11 +157,11 @@ class JsonDocStoreShell(cmd.Cmd):
             print(f"Error: {e}")
 
     def do_exit(self, arg):
-        """Exit the shell."""
+        """exit: leave the shell"""
         return True
 
     def do_EOF(self, arg):
-        """Exit on Ctrl-D."""
+        """Ctrl-D: leave the shell"""
         print()
         return True
 

@@ -256,62 +256,24 @@ class JsonDocStoreTests(unittest.TestCase):
         self.assertEqual(rc, 1)
         self.assertIn("Usage: python -m jsondocstore /path/to/db", stderr.getvalue())
 
-    def test_shell_completes_document_keys(self) -> None:
-        _, store = self.make_store(
-            docs=[
-                ("user-1", {"role": "admin"}),
-                ("user-2", {"role": "user"}),
-            ],
-        )
+    def test_shell_completes_command_names(self) -> None:
+        _, store = self.make_store()
         shell = cli.JsonDocStoreShell(store)
 
-        matches = shell.complete_delete("user-", "delete user-", 7, 12)
+        matches = shell.completenames("cr")
 
-        self.assertEqual(matches, ["user-1", "user-2"])
+        self.assertEqual(matches, ["createindex"])
 
-    def test_shell_completes_index_fields_for_query(self) -> None:
-        _, store = self.make_store(
-            index_fields=["role", "region"],
-            docs=[
-                ("user-1", {"role": "admin", "region": "eu"}),
-            ],
-        )
-        shell = cli.JsonDocStoreShell(store)
-
-        matches = shell.complete_queryby("r", "queryby r", 8, 9)
-
-        self.assertEqual(matches, ["region", "role"])
-
-    def test_shell_completes_unindexed_fields_for_createindex(self) -> None:
+    def test_shell_does_not_complete_command_arguments(self) -> None:
         _, store = self.make_store(
             index_fields=["role"],
-            docs=[
-                ("user-1", {"role": "admin", "region": "eu", "username": "alice"}),
-            ],
+            docs=[("user-1", {"role": "admin"})],
         )
         shell = cli.JsonDocStoreShell(store)
 
-        matches = shell.complete_createindex("r", "createindex r", 12, 13)
+        matches = shell.completedefault("r", "queryby r", 8, 9)
 
-        self.assertEqual(matches, ["region"])
-
-    def test_shell_completes_deleteindex_from_existing_indexes(self) -> None:
-        _, store = self.make_store(index_fields=["role", "region"])
-        shell = cli.JsonDocStoreShell(store)
-
-        matches = shell.complete_deleteindex("r", "deleteindex r", 12, 13)
-
-        self.assertEqual(matches, ["region", "role"])
-
-    def test_shell_query_completion_without_index_uses_document_fields(self) -> None:
-        root = Path(tempfile.mkdtemp())
-        (root / "user-1.json").write_text(json.dumps({"role": "admin", "username": "alice"}), encoding="utf-8")
-        store = JsonDocStore(root, create=True)
-        shell = cli.JsonDocStoreShell(store)
-
-        matches = shell.complete_queryby("r", "queryby r", 8, 9)
-
-        self.assertEqual(matches, ["role"])
+        self.assertEqual(matches, [])
 
 
 class JsonDocStoreShellTests(unittest.TestCase):
