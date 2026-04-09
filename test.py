@@ -47,7 +47,7 @@ class JsonDocStoreTests(unittest.TestCase):
         store.create_index("age")
         with self.assertRaisesRegex(ValueError, "Index already exists: age"):
             store.create_index("age")
-        self.assertEqual(store.query_by("age", 42), [{"age": 42}])
+        self.assertEqual(store.query_by("age", 42), {"doc-1": {"age": 42}})
 
     def test_create_index_bootstraps_schema_when_missing(self) -> None:
         root = Path(tempfile.mkdtemp())
@@ -62,7 +62,7 @@ class JsonDocStoreTests(unittest.TestCase):
             json.loads((root / "index.json").read_text(encoding="utf-8")),
             {"index_fields": ["role"]},
         )
-        self.assertEqual(store.query_by("role", "user"), [{"role": "user"}])
+        self.assertEqual(store.query_by("role", "user"), {"user-2": {"role": "user"}})
 
     def test_query_by_requires_index(self) -> None:
         root = Path(tempfile.mkdtemp())
@@ -167,8 +167,11 @@ class JsonDocStoreTests(unittest.TestCase):
 
         store.update("customer-1", {"name": "alice", "role": "admin"})
 
-        self.assertEqual(store.query_by("role", "user"), [])
-        self.assertEqual(store.query_by("role", "admin"), [{"name": "alice", "role": "admin"}])
+        self.assertEqual(store.query_by("role", "user"), {})
+        self.assertEqual(
+            store.query_by("role", "admin"),
+            {"customer-1": {"name": "alice", "role": "admin"}},
+        )
 
     def test_update_requires_existing_document(self) -> None:
         _, store = self.make_store()
@@ -300,9 +303,18 @@ class JsonDocStoreShellTests(unittest.TestCase):
 
         store.list_indexes.assert_called_once_with()
 
+    def test_get_uses_store_api(self) -> None:
+        store, shell = self.make_shell()
+        store.get.return_value = {"id": "1"}
+
+        with redirect_stdout(io.StringIO()):
+            shell.do_get("1")
+
+        store.get.assert_called_once_with("1")
+
     def test_queryby_uses_store_api_with_parsed_value(self) -> None:
         store, shell = self.make_shell()
-        store.query_by.return_value = [{"id": "1", "age": 42}]
+        store.query_by.return_value = {"doc-1": {"id": "1", "age": 42}}
 
         with redirect_stdout(io.StringIO()):
             shell.do_queryby("age 42")

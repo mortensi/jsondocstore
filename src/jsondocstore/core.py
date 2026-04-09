@@ -106,12 +106,12 @@ class JsonDocStore:
             raise KeyError(f"Document not found: {pk}")
         return json.loads(path.read_text(encoding="utf-8"))
 
-    def query_by(self, field: str, value: Any) -> list[dict[str, Any]]:
+    def query_by(self, field: str, value: Any) -> dict[str, dict[str, Any]]:
         if self.schema is None:
             raise ValueError("Cannot query without an index. Create an index first")
         if field not in self.indexes:
             raise ValueError(f"Field is not indexed: {field}")
-        return [self.get(pk) for pk in sorted(self.indexes[field].get(value, ()))]
+        return {pk: self.get(pk) for pk in sorted(self.indexes[field].get(value, ()))}
 
     def create_index(self, field: str) -> None:
         if self.schema is None:

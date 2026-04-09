@@ -59,6 +59,18 @@ class JsonDocStoreShell(cmd.Cmd):
         """listindexes: print indexed fields"""
         self._print_json(self.store.list_indexes())
 
+    def do_get(self, arg):
+        """get KEY: print a document by key"""
+        pk = arg.strip()
+        if not pk:
+            print("Usage: get KEY")
+            return
+
+        try:
+            self._print_json(self.store.get(pk))
+        except Exception as e:
+            print(f"Error: {e}")
+
     def do_queryby(self, arg):
         """queryby FIELD VALUE: exact-match query on an indexed field"""
         try:
