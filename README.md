@@ -13,6 +13,12 @@ Simple JSON document storage on disk.
 pip install jsondocstore
 ```
 
+API docs can be published to GitHub Pages at:
+
+```text
+https://mortensi.github.io/jsondocstore/
+```
+
 ## Using from the terminal
 
 Start the interactive shell:

@@ -16,7 +16,18 @@ _VALID_KEY_RE = re.compile(r"^[A-Za-z0-9._-]+$")
 
 
 class JsonDocStore:
+    """Store JSON documents as individual files in a directory.
+
+    Document identity is the filename stem. Optional indexes are stored in
+    ``index.json`` and support exact-match queries on top-level fields.
+    """
+
     def __init__(self, root: str | Path, create: bool = False):
+        """Open a document store rooted at ``root``.
+
+        If ``create`` is true, the directory is created when missing.
+        ``index.json`` is optional and is only needed for indexed queries.
+        """
         self.root = Path(root)
         if create:
             self.root.mkdir(parents=True, exist_ok=True)
@@ -97,9 +108,14 @@ class JsonDocStore:
         tmp_path.replace(path)
 
     def list_all(self) -> list[str]:
+        """Return all document filenames in the store."""
         return self._list_doc_names()
 
     def get(self, pk: str) -> dict[str, Any]:
+        """Return the document stored under ``pk``.
+
+        Raises ``KeyError`` if the document does not exist.
+        """
         self._validate_key(pk)
         path = self._doc_path(pk)
         if not path.exists():
@@ -107,6 +123,11 @@ class JsonDocStore:
         return json.loads(path.read_text(encoding="utf-8"))
 
     def query_by(self, field: str, value: Any) -> dict[str, dict[str, Any]]:
+        """Return documents whose indexed ``field`` exactly matches ``value``.
+
+        The result is a mapping of ``key -> document``. Raises ``ValueError`` if
+        no index exists or if ``field`` is not indexed.
+        """
         if self.schema is None:
             raise ValueError("Cannot query without an index. Create an index first")
         if field not in self.indexes:
@@ -114,6 +135,11 @@ class JsonDocStore:
         return {pk: self.get(pk) for pk in sorted(self.indexes[field].get(value, ()))}
 
     def create_index(self, field: str) -> None:
+        """Create an exact-match index for a top-level field.
+
+        Creates ``index.json`` when needed. Raises ``ValueError`` if the index
+        already exists.
+        """
         if self.schema is None:
             self.schema = {"index_fields": []}
             self.index_fields = []
@@ -127,9 +153,15 @@ class JsonDocStore:
         self._rebuild_index()
 
     def list_indexes(self) -> list[str]:
+        """Return the sorted list of indexed fields."""
         return sorted(self.index_fields)
 
     def delete_index(self, field: str) -> bool:
+        """Delete an index by field name.
+
+        Returns ``True`` if an index was deleted, ``False`` if it did not
+        exist. Raises ``ValueError`` if no ``index.json`` exists.
+        """
         if self.schema is None:
             raise ValueError("Cannot delete an index without an index.json")
         if field not in self.indexes:
@@ -141,6 +173,10 @@ class JsonDocStore:
         return True
 
     def insert(self, pk: str, doc: dict[str, Any]) -> dict[str, Any]:
+        """Insert a new document under ``pk`` and return it.
+
+        Raises ``ValueError`` if the key is invalid or already exists.
+        """
         self._validate_key(pk)
         path = self._doc_path(pk)
         if path.exists():
@@ -151,6 +187,10 @@ class JsonDocStore:
         return doc
 
     def update(self, pk: str, doc: dict[str, Any]) -> dict[str, Any]:
+        """Replace the existing document stored under ``pk`` and return it.
+
+        Raises ``KeyError`` if the document does not exist.
+        """
         self._validate_key(pk)
         path = self._doc_path(pk)
         if not path.exists():
@@ -163,6 +203,10 @@ class JsonDocStore:
         return doc
 
     def delete(self, pk: str) -> None:
+        """Delete the document stored under ``pk``.
+
+        Raises ``KeyError`` if the document does not exist.
+        """
         self._validate_key(pk)
         path = self._doc_path(pk)
         if not path.exists():

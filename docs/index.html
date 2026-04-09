@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>JsonDocStore Docs</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f6f4ef;
+      --panel: #fffdf8;
+      --text: #1f2328;
+      --muted: #5b6470;
+      --accent: #8d3c1f;
+      --border: #dccfbc;
+    }
+
+    body {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      background: linear-gradient(180deg, #f3efe5 0%, var(--bg) 55%, #ebe4d4 100%);
+      color: var(--text);
+    }
+
+    main {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 56px 24px 72px;
+    }
+
+    .card {
+      background: color-mix(in srgb, var(--panel) 92%, white 8%);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 28px;
+      box-shadow: 0 12px 30px rgba(44, 32, 16, 0.08);
+    }
+
+    h1 {
+      margin: 0 0 12px;
+      font-size: clamp(2rem, 5vw, 3.2rem);
+      line-height: 1.05;
+    }
+
+    p {
+      font-size: 1.05rem;
+      line-height: 1.6;
+      margin: 0 0 14px;
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 24px;
+    }
+
+    a {
+      color: inherit;
+    }
+
+    .button {
+      display: inline-block;
+      text-decoration: none;
+      border-radius: 999px;
+      padding: 12px 18px;
+      border: 1px solid var(--accent);
+      background: var(--accent);
+      color: #fff8ee;
+      font-weight: 600;
+    }
+
+    .button.secondary {
+      background: transparent;
+      color: var(--accent);
+    }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.95em;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <section class="card">
+      <h1>JsonDocStore</h1>
+      <p>Small JSON document storage on disk, with one file per document and optional exact-match indexes on top-level fields.</p>
+      <p class="muted">API documentation on this site is generated from Python docstrings during the GitHub Pages build.</p>
+      <div class="actions">
+        <a class="button" href="api/jsondocstore.html">API Reference</a>
+        <a class="button secondary" href="https://github.com/mortensi/jsondocstore">Repository</a>
+      </div>
+      <p class="muted" style="margin-top: 24px;">Install with <code>pip install jsondocstore</code>.</p>
+    </section>
+  </main>
+</body>
+</html>
