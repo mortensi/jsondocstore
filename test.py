@@ -229,6 +229,13 @@ class JsonDocStoreTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "'index_fields' must be a list"):
             JsonDocStore(root)
 
+    def test_invalid_schema_index_fields_must_not_be_empty(self) -> None:
+        root = Path(tempfile.mkdtemp())
+        (root / "index.json").write_text(json.dumps({"index_fields": [""]}), encoding="utf-8")
+
+        with self.assertRaisesRegex(ValueError, "'index_fields' entries must not be empty"):
+            JsonDocStore(root)
+
     def test_interactive_cli_starts_without_schema_file(self) -> None:
         root = Path(tempfile.mkdtemp())
 
@@ -238,6 +245,16 @@ class JsonDocStoreTests(unittest.TestCase):
 
         self.assertEqual(rc, 0)
         self.assertFalse((root / "index.json").exists())
+
+    def test_interactive_cli_requires_existing_directory(self) -> None:
+        root = Path(tempfile.mkdtemp()) / "missing"
+        stderr = io.StringIO()
+
+        with patch("sys.argv", ["cli.py", str(root)]), contextlib.redirect_stderr(stderr):
+            rc = cli.main()
+
+        self.assertEqual(rc, 1)
+        self.assertIn("Directory does not exist", stderr.getvalue())
 
     def test_interactive_cli_exits_cleanly_on_keyboard_interrupt(self) -> None:
         root = Path(tempfile.mkdtemp())

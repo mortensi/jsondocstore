@@ -13,6 +13,7 @@ def _json_dump(value: Any) -> str:
 
 
 _VALID_KEY_RE = re.compile(r"^[A-Za-z0-9._-]+$")
+_SCHEMA_FILENAME = "index.json"
 
 
 class JsonDocStore:
@@ -36,7 +37,7 @@ class JsonDocStore:
         if not self.root.is_dir():
             raise ValueError(f"Path is not a directory: {self.root}")
 
-        self.schema_path = self.root / "index.json"
+        self.schema_path = self.root / _SCHEMA_FILENAME
         self.schema = self._load_schema() if self.schema_path.exists() else None
         self.index_fields = list(self.schema.get("index_fields", [])) if self.schema else []
         self.indexes: dict[str, dict[Any, set[str]]] = {field: defaultdict(set) for field in self.index_fields}
@@ -51,6 +52,8 @@ class JsonDocStore:
             raise ValueError("'index_fields' must be a list")
         if not all(isinstance(field, str) for field in schema["index_fields"]):
             raise ValueError("'index_fields' entries must be strings")
+        if not all(field for field in schema["index_fields"]):
+            raise ValueError("'index_fields' entries must not be empty")
         return schema
 
     def _doc_path(self, pk: str) -> Path:
@@ -61,18 +64,24 @@ class JsonDocStore:
             raise ValueError("Document key must not be empty")
         if pk in {".", ".."}:
             raise ValueError(f"Invalid document key: {pk}")
-        if pk == "index":
-            raise ValueError("Document key 'index' is reserved")
+        if pk == Path(_SCHEMA_FILENAME).stem:
+            raise ValueError(f"Document key '{Path(_SCHEMA_FILENAME).stem}' is reserved")
         if not _VALID_KEY_RE.fullmatch(pk):
             raise ValueError(
                 "Invalid document key. Use only letters, digits, dot, underscore, or hyphen"
             )
 
+    def _validate_field_name(self, field: str) -> None:
+        if not isinstance(field, str):
+            raise ValueError("Indexed field name must be a string")
+        if not field:
+            raise ValueError("Indexed field name must not be empty")
+
     def _rebuild_index(self) -> None:
         for field in self.index_fields:
             self.indexes[field].clear()
         for path in sorted(self.root.glob("*.json")):
-            if path.name == "index.json":
+            if path.name == _SCHEMA_FILENAME:
                 continue
             doc = json.loads(path.read_text(encoding="utf-8"))
             self._add_indexes(path.stem, doc)
@@ -81,7 +90,7 @@ class JsonDocStore:
         return [
             path.name
             for path in sorted(self.root.glob("*.json"))
-            if path.name != "index.json"
+            if path.name != _SCHEMA_FILENAME
         ]
 
     def _add_indexes(self, pk: str, doc: dict[str, Any]) -> None:
@@ -128,6 +137,7 @@ class JsonDocStore:
         The result is a mapping of ``key -> document``. Raises ``ValueError`` if
         no index exists or if ``field`` is not indexed.
         """
+        self._validate_field_name(field)
         if self.schema is None:
             raise ValueError("Cannot query without an index. Create an index first")
         if field not in self.indexes:
@@ -140,6 +150,7 @@ class JsonDocStore:
         Creates ``index.json`` when needed. Raises ``ValueError`` if the index
         already exists.
         """
+        self._validate_field_name(field)
         if self.schema is None:
             self.schema = {"index_fields": []}
             self.index_fields = []
@@ -162,6 +173,7 @@ class JsonDocStore:
         Returns ``True`` if an index was deleted, ``False`` if it did not
         exist. Raises ``ValueError`` if no ``index.json`` exists.
         """
+        self._validate_field_name(field)
         if self.schema is None:
             raise ValueError("Cannot delete an index without an index.json")
         if field not in self.indexes:

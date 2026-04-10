@@ -186,7 +186,7 @@ def main():
     _configure_readline()
     root = Path(sys.argv[1])
     try:
-        store = JsonDocStore(root, create=True)
+        store = JsonDocStore(root)
     except Exception as e:
         print(f"Error: {e}", file=sys.stderr)
         return 1
