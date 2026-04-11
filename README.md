@@ -7,6 +7,10 @@ Simple JSON document storage on disk.
 - Each document is stored as a file named `<key>.json`. The document key is the filename stem.
 - If you want to query by a field, create an index on it. This will create an `index.json` file in the store directory. Currently, only exact match is supported. It is not required for basic operations like `insert`, `update`, `delete`, and `get`. The index is in-memory, not persisted to disk and is rebuilt when the store is opened. 
 
+## Disclaimer
+
+This is a very simple library. It is meant to be a simple way to store and query JSON documents on disk. It does not support transactions, concurrency, or any other advanced features. It is not meant to be used in production. It is meant to be used for small projects where you don't want to run a database server. I have used to manage JSON documents in a single worker FastAPI, but note that using multiple FastAPI workers this will not work, every worker would keep a separate in-memory index.
+
 ## Installation
 
 ```bash
